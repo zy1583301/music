@@ -7,7 +7,6 @@
 import Lyric from 'lyric-parser'
 import Axios from 'axios'
 import { mapState } from 'vuex'
-import { getLyricUrl } from '../../api/getSongUrl'
 import { Base64 } from 'js-base64'
 export default {
   props: ['state', 'songmid', 'time'],
@@ -21,7 +20,11 @@ export default {
   },
   methods: {
     getLyric () {
-       let url = `/hehe/api/lyric?g_tk=1928093487&inCharset=utf-8&outCharset=utf-8&notice=0&format=json&songmid=${this.songmid}&platform=yqq&hostUin=0&needNewCode=0&categoryId=10000000&pcachetime=1571035409126`
+      //  let url = `/hehe/api/lyric?g_tk=1928093487&inCharset=utf-8&outCharset=utf-8&notice=0&format=json&songmid=${this.songmid}&platform=yqq&hostUin=0&needNewCode=0&categoryId=10000000&pcachetime=1571035409126`
+      // let url = `http://47.93.184.51:4000/item/songlyric?mid=${this.songmid}`
+      //  let url = `http://localhost:4000/item/songlyric?mid=${this.songmid}`
+        let url = `http://${this.$store.state.play.path}:4000/item/songlyric?mid=${this.songmid}`
+       
       let xhr = new XMLHttpRequest()
       xhr.open('GET', url)
       xhr.send()

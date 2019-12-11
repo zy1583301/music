@@ -45,9 +45,13 @@ export default {
   },
   created () {
     // let url = 'http://47.93.184.51:4000/item/disc'
-    let url = '/hehe/api/getDiscList?g_tk=1928093487&inCharset=utf-8&outCharset=utf-8&notice=0&format=json&platform=yqq&hostUin=0&sin=0&ein=29&sortId=5&needNewCode=0&categoryId=10000000&rnd=0.13704875401173378'
+    //  let url = 'http://localhost:4000/item/disc'
+       let url = `http://${this.$store.state.play.path}:4000/item/disc`
+            
+    // let url = '/hehe/api/getDiscList?g_tk=1928093487&inCharset=utf-8&outCharset=utf-8&notice=0&format=json&platform=yqq&hostUin=0&sin=0&ein=29&sortId=5&needNewCode=0&categoryId=10000000&rnd=0.13704875401173378'
     Axios.get(url)
       .then((data) => {
+         console.log(data)
         let list = data.data.data.list
         this.list = list
       })

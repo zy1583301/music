@@ -30,7 +30,7 @@
                 <div class="bot_line"  @click.stop="progressClick" ref="bot_line">
                     <div class="top_line"  ref="top_line">
                     </div>
-                    <div class="block"  @touchstart="touchstart" @touchmove='touchmove' @touchend="touchend" ref="block">
+                    <div class="block"  @touchstart.stop.prevent="touchstart" @touchmove.stop.prevent='touchmove' @touchend.stop.prevent="touchend" ref="block">
                         <div class="small_b"></div>
                     </div>
                 </div>
@@ -142,10 +142,7 @@ export default {
   },
   methods: {
     getLyric (mid) {
-      // let url =  getLyricUrl(mid)
-    //   let url = `http://47.93.184.51:3000/item/songlyric`
-      // let url = `/hehe/item/songlyric`
-      let url = `/hehe/api/lyric?g_tk=1928093487&inCharset=utf-8&outCharset=utf-8&notice=0&format=json&songmid=${mid}&platform=yqq&hostUin=0&needNewCode=0&categoryId=10000000&pcachetime=1569567498308`
+      let url = `http://${this.$store.state.play.path}:4000/item/songlyric?mid=${mid}`
       Axios.get(url).then(data => {
         // 拿到歌词  需要使用插件解析 lyric-parser
         let oldLyric = data.data.lyric
@@ -167,7 +164,7 @@ export default {
           this.lyricObj = new Lyric(newLyric, (res) => {
             this.lyric = res.txt
             this.currentLine = res.lineNum
-            if (res.lineNum > 8 && res.lineNum < this.lyricArr.length - 5) {
+            if (res.lineNum > 8 && res.lineNum < this.lyricArr.length - 5 && this.$refs.lyricWrap) {
               this.$refs.lyricWrap.style.transform = `translate(0,${-24 * (this.currentLine - 8)}px)`
             }
           })
@@ -262,10 +259,6 @@ export default {
       this.totalTime = this.$refs.audio.duration
       this.state = true
       this.$refs.audio.play()
-    },
-    // 控制喜欢不喜欢状态
-    changeHeart () {
-      this.like = !this.like
     },
     // 不断获取当前播放时间 下面的watch里监控了这个currentTime的变化 来控制播放时进度条变化
     timeupdate (e) {

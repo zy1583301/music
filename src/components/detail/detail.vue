@@ -6,11 +6,11 @@
             </button>
             <h5>{{name}}</h5>
         </header>
-        <div class="img-box" ref="img_b" :style="{height:img_h+'px'}">
+        <div class="img-box" ref="img_b" :style="{zIndex:zindex}">
             <img :src="imgUrl" alt="">
             <div class="small_img"></div>
         </div>
-        <div class="big" ref="big" :style="{transform:trasInfo}"></div>
+        <div class="big" ref="big"></div>
         <div class="songList"  ref="bs" >
             <ul class="songItem">
                 <li v-for="(item,index) in list" @click="playCurrent(index)" :key="index" >
@@ -32,10 +32,11 @@ export default {
       listObj: {},
       imgUrl: ``,
       trasInfo: 'translate3d(0,0,0)',
-      img_h: 262,
+      img_h: 0,
       list: [],
       name: '',
-      a: ''
+      a: '',
+      zindex:0
     }
   },
   computed: {
@@ -74,21 +75,45 @@ export default {
       })
     },
     getRecomList (mid) {
-       let url = `/hehe/api/getCdInfo?g_tk=1928093487&inCharset=utf-8&outCharset=utf-8&notice=0&format=jsonp&disstid=${mid}&type=1&json=1&utf8=1&onlysong=0&platform=yqq&hostUin=0&needNewCode=0`
+       let url = `http://${this.$store.state.play.path}:4000/item/recom?dissid=${mid}`
       Axios(url).then((data) => {
         this.list = data.data.cdlist[0].songlist
         this.name = data.data.cdlist[0].dissname
       })
       this.imgUrl = this.urlOfImg
     },
+    getRankList (id) {
+      
+       let url = `https://c.y.qq.com/v8/fcg-bin/fcg_v8_toplist_cp.fcg?g_tk=1928093487&inCharset=utf-8&outCharset=utf-8&notice=0&format=jsonp&topid=${id}&needNewCode=1&uin=0&tpl=3&page=detail&type=top&platform=h5`
+      jsonp(url,{param:'jsonpCallback'},(err,res)=>{
+        this.list =  res.songlist.map((item=>{
+          return item.data
+        }))
+        this.name = res.topinfo.ListName
+         this.imgUrl = `https://y.gtimg.cn/music/photo_new/T002R300x300M000${this.list[0].albummid}.jpg?max_age=2592000`
+      })
+     
+    },
     initBs () {
-      this.bs = new Bs(this.$refs.bs, { click: true, probeType: 3, bounce: true, deceleration: 0.001 })
+      this.$refs.img_b.style.height = 262+ this.img_h +'px'
+      if(!this.$refs.bs) return 
+      this.bs = new Bs(this.$refs.bs, { click: true, probeType: 3, bounce: true, deceleration: 0.001,momentum: true })
       this.bs.on('scroll', (pos) => {
+        this.img_h = pos.y
         let y = pos.y
-        if (-y <= 225) {
-          this.trasInfo = `translate3d(0,${y}px,0)`
-          this.img_h = 262 + y
+        // 向上滑动  就是负值越来越大
+        // 向下滑动  负值越来越小
+        // 初始262高度， 让262+y
+          if (-this.img_h >= 220) {
+          this.img_h = 220
+          this.zindex = 999
+        }else if (-this.img_h<=0){
+           this.img_h = 0
+           this.zindex = 0
         }
+        if(!this.$refs.big) return 
+        this.$refs.big.style.transform = `translate3d(0,${this.img_h}px,0)`
+        this.$refs.img_b.style.height = 262 - this.img_h +'px'
       })
     }
   },
@@ -97,6 +122,8 @@ export default {
       this.getList(this.$store.state.play.mid)
     } else if (this.$store.state.play.playCode === 'recom') {
       this.getRecomList(this.$store.state.play.mid)
+    } else if (this.$store.state.play.playCode === 'rank') {
+      this.getRankList (this.$store.state.play.mid)
     }
   },
   mounted () {
@@ -141,7 +168,7 @@ export default {
             width:100%;
             /* height:7rem; */
             overflow: hidden;
-            z-index: 999;
+            z-index: 0;
             position: relative;
             .small_img{
                 position: absolute;;
@@ -167,13 +194,14 @@ export default {
             bottom:0;
             width:100%;
             /* overflow: hidden; */
+             color:hsla(0,0%,100%,.5);
             .songItem{
                width:100%;
                /* height:9rem; */
                 li{
                     width:100%;
                     padding:10px 0;
-                    /* background: #222; */
+                   background: #222; 
                     p{
                         &:first-child{
                             color:#fff;

@@ -181,6 +181,13 @@
       "unicode_decimal": 59170
     },
     {
+      "icon_id": "3588586",
+      "name": "枫叶",
+      "font_class": "fengye",
+      "unicode": "e701",
+      "unicode_decimal": 59137
+    },
+    {
       "icon_id": "3847401",
       "name": "客服",
       "font_class": "kefu",

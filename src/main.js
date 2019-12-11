@@ -6,8 +6,9 @@ import '../public/font-awesome-4.7.0/css/font-awesome.min.css'
 import VueLazyLoad from 'vue-lazyload'
 import store from './store/store'
 import Axios from 'axios'
-
+import '../public/font/iconfont.css'
 router.beforeEach(async (to, from, next) => {
+  document.title = to.meta.title
   store.state.play.playCode = to.path.split('/')[1]
   store.state.play.mid = to.params.id
   next()

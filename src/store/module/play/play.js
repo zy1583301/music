@@ -16,7 +16,8 @@ export default {
     imgUrl: '',
     playCode: 'singer',
     mid: '',
-    a: ''
+    a: '',
+    path:0>1?'47.93.184.51':'localhost'
   },
   getters: {
     // 计算出当前播放歌曲所需songmid
@@ -145,7 +146,9 @@ export default {
   },
   actions: {
     getUrl (context, songmid) {
-      let url = `/vkey/musicu.fcg?-=getplaysongvkey9728213402699808&g_tk=5381&loginUin=847006774&hostUin=0&format=json&inCharset=utf8&outCharset=utf-8&notice=0&platform=yqq.json&needNewCode=0&data={"req":{"module":"CDN.SrfCdnDispatchServer","method":"GetCdnDispatch","param":{"guid":"3121060360","calltype":0,"userip":""}},"req_0":{"module":"vkey.GetVkeyServer","method":"CgiGetVkey","param":{"guid":"3121060360","songmid":[${JSON.stringify(songmid)}],"songtype":[0],"uin":"847006774","loginflag":1,"platform":"20"}},"comm":{"uin":847006774,"format":"json","ct":24,"cv":0}}`
+      // let url = `/vkey/musicu.fcg?-=getplaysongvkey9728213402699808&g_tk=5381&loginUin=847006774&hostUin=0&format=json&inCharset=utf8&outCharset=utf-8&notice=0&platform=yqq.json&needNewCode=0&data={"req":{"module":"CDN.SrfCdnDispatchServer","method":"GetCdnDispatch","param":{"guid":"3121060360","calltype":0,"userip":""}},"req_0":{"module":"vkey.GetVkeyServer","method":"CgiGetVkey","param":{"guid":"3121060360","songmid":[${JSON.stringify(songmid)}],"songtype":[0],"uin":"847006774","loginflag":1,"platform":"20"}},"comm":{"uin":847006774,"format":"json","ct":24,"cv":0}}`
+      // let url = `http://47.93.184.51:4000/item/songUrl?songmid=${songmid}`
+      let url = `http://localhost:4000/item/songUrl?songmid=${songmid}`
       Axios.get(url).then(res => {
         context.state.songUrl = `http://ws.stream.qqmusic.qq.com/${res.data.req_0.data.midurlinfo[0].purl}`
       })
