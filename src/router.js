@@ -13,12 +13,12 @@ export default new Router({
     path: '/recom',
     name: 'one',
     component: Recom,
-    meta:{title:'推荐页'},
+    meta: { title: '推荐页' },
     children: [
       { path: ':id',
         name: '2',
         component: Detail,
-        meta:{title:'详情页'}
+        meta: { title: '详情页' }
       }
     ]
   },
@@ -26,12 +26,12 @@ export default new Router({
     path: '/singer',
     name: 'two',
     component: Singer,
-    meta:{title:'歌手页'},
+    meta: { title: '歌手页' },
     children: [
       { path: ':id',
         name: '1',
         component: Detail,
-        meta:{title:'详情页'}
+        meta: { title: '详情页' }
       }
     ]
   },
@@ -39,23 +39,33 @@ export default new Router({
     path: '/rank',
     name: 'three',
     component: Rank,
-    meta:{title:'排行页'},
+    meta: { title: '排行页' },
     children: [
       { path: ':id',
         name: '3',
         component: Detail,
-        meta:{title:'详情页'}
+        meta: { title: '详情页' }
       }
     ]
   },
   {
-    path: '/search', name: 'four', component: Search
+    path: '/search',
+    name: 'four',
+    component: Search,
+    meta: { title: '搜索页' },
+    children: [
+      { path: ':id',
+        name: '5',
+        component: Detail,
+        meta: { title: '详情页' }
+      }
+    ]
   },
   {
     path: '/', name: 'five', redirect: '/recom'
   },
   {
-    path: '/person', component: Person,meta:{title:'个人页'}
+    path: '/person', component: Person, meta: { title: '个人页' }
   }
   ]
 

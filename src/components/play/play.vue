@@ -1,82 +1,83 @@
 <template>
-    <div class='play' v-if="list.length">
-        <div class="fullScreen" v-if="fullScreen">
-            <div class="background" >
-                <img :src="imgUrl" alt="">
-            </div>
-            <div class="songHead">
-                <i class="iconfont icon-xianshigengduo" @click.stop="changeFull"></i>
-                    <p>{{songName}}</p>
-            </div>
-            <p class="singerName">{{singerName}}</p>
-            <div class="middle" ref="middle" @touchstart="startMaxLyric" @touchmove="moveMaxLyric" @touchend="endMaxLyric">
-
-            <div class="rotateImg" :class="rotateClass" ref="rotate" >
-            <img :src="imgUrl" alt="">
-            </div>
-           <div class="miniLyric" ref="miniLyric" >
-                {{lyric}}
-           </div>
-           <div class="maxLyric"  ref="maxLyric" >
+<div class='play' v-if="list.length">
+    <div class="fullScreen" v-if="fullScreen">
+       
+        <div class="background" >
+          <img :src="imgUrl" alt="">
+        </div>
+        <div class="songHead">
+          <i class="iconfont icon-xianshigengduo" @click.stop="changeFull"></i>
+          <p>{{songName}}</p>
+        </div>
+        <p class="singerName">{{singerName}}</p>
+         <v-touch v-on:swipeleft="onSwipeLeft" v-on:swiperight="onSwipeRight">
+        <div class="middle" ref="middle">
+          <div class="rotateImg" :class="rotateClass" ref="rotate" >
+          <img :src="imgUrl" alt="">
+          </div>
+          <div class="miniLyric" ref="miniLyric" >
+            {{lyric}}
+          </div>
+          <div class="maxLyric"  ref="maxLyric" >
             <ul  ref="lyricWrap">
-                <li v-for="(item,index) in lyricArr" :class="index=== currentLine?'lyricActive':''" :lineIndex="index" :key="index">
-                   {{item}}
-                </li>
+              <li v-for="(item,index) in lyricArr" :class="index=== currentLine?'lyricActive':''" :lineIndex="index" :key="index" ref="lyricLine">
+              {{item.txt}}
+              </li>
             </ul>
-             </div>
-            </div>
-            <div class="timeBar">
-                <span>{{time|hehe}}</span>
-                <div class="bot_line"  @click.stop="progressClick" ref="bot_line">
-                    <div class="top_line"  ref="top_line">
-                    </div>
-                    <div class="block"  @touchstart.stop.prevent="touchstart" @touchmove.stop.prevent='touchmove' @touchend.stop.prevent="touchend" ref="block">
-                        <div class="small_b"></div>
-                    </div>
-                </div>
-                <span>{{totalTime|hehe}}</span>
-            </div>
-            <div class="set">
-            <span @click.stop="changeModel"><i :class="loopState===0?'iconfont icon-ziyuanldpi':(loopState===1?'iconfont icon-danquxunhuan':'iconfont icon-suiji')" ref="model"></i></span>
-            <span @click.stop="next('prev')" class="next"><i class="iconfont icon-shangyigeshangyiqu" ></i></span>
-            <span @click.stop="play"><i :class="stopInfo" ref="playState"></i></span>
-            <span @click.stop="next('next')" class="next"><i class="iconfont icon-xiayigexiayiqu"></i></span>
-            <span @click.stop="addLike(m)" class="heart"><i :class="isLike(m)?'fa fa-heart':'fa fa-heart-o'" aria-hidden="true" ref="heart"></i></span>
-            </div>
-
+          </div>
         </div>
-        <div class="miniScreen" v-else >
-                <div  class="rotateImg"  :class="rotateClass" ref="rotate"  @click="changeFull">
-                    <img :src="imgUrl" alt="">
-                </div>
-                <div class="text" @click.stop="changeFull">
-                    <p class="songName">{{songName}}</p>
-                    <p>{{singerName}}</p>
-                </div>
-                <div class="stopBox" @click.stop="play" >
-                        <svg width="100%" height="100%" version="1.1"
-                        xmlns="http://www.w3.org/2000/svg">
-                        <circle cx="20" cy="20" r="12"
-                        stroke-width="2" fill="transparent" class="inner"/>
-                        <circle cx="20" cy="20" r="12"
-                        :stroke-dasharray="Math.PI*12*2"
-                        stroke-width="2" fill="transparent"
-                        :stroke-dashoffset = "dashoffset"
-                        class="outer" ref="outer"/>
-                </svg>
-               <i :class="stopInfo" ref="playState"></i>
-                </div>
-                <div class="playList">
-                <List :list='list' :changeModel="changeModel" v-if="hideCode?true:false" :hide="openList" :loopState="loopState" :currentIndex="currentIndex" :emptyState="emptyState" :changeEmpty='changeEmpty' :setCurrentIndex='setCurrentIndex' :islike='isLike' :addLike="addLike"
-                  :changeFlag="changeFlag"
-                ></List>
-                <i class="iconfont icon-bofangliebiao"  @click.stop="openList(true)"></i>
-
-                </div>
+        </v-touch>
+        <div class="timeBar">
+          <span>{{time|hehe}}</span>
+          <div class="bot_line"  @click.stop="progressClick" ref="bot_line">
+          <div class="top_line"  ref="top_line">
+          </div>
+          <div class="block"  @touchstart.stop.prevent="touchstart" @touchmove.stop.prevent='touchmove' @touchend.stop.prevent="touchend" ref="block">
+            <div class="small_b"></div>
+          </div>
         </div>
-
-        <audio :src="songUrl1" controls  ref="audio" @canplay="canplay" @timeupdate="timeupdate" @ended="ended"></audio>
+        <span>{{totalTime|hehe}}</span>
+        </div>
+        <div class="set">
+          <span @click.stop="changeModel"><i :class="loopState===0?'iconfont icon-ziyuanldpi':(loopState===1?'iconfont icon-danquxunhuan':'iconfont icon-suiji')" ref="model"></i></span>
+          <span @click.stop="next('prev')" class="next"><i class="iconfont icon-shangyigeshangyiqu" ></i></span>
+          <span @click.stop="play"><i :class="stopInfo" ref="playState"></i></span>
+          <span @click.stop="next('next')" class="next"><i class="iconfont icon-xiayigexiayiqu"></i></span>
+          <span @click.stop="addLike(m)" class="heart"><i :class="isLike(m)?'fa fa-heart':'fa fa-heart-o'" aria-hidden="true" ref="heart"></i></span>
+        </div>
     </div>
+    <div class="miniScreen" v-else >
+      <div class="rotateImgBox">
+      <div  class="rotateImg"  :class="rotateClass" ref="rotate"  @click="changeFull">
+      <img :src="imgUrl" alt="">
+      </div>
+    </div>
+    <div class="text" @click.stop="changeFull">
+      <h2 class="songName">{{songName}}</h2>
+      <p>{{singerName}}</p>
+    </div>
+    <div class="stopBox" @click.stop="play" >
+        <svg width="100%" height="100%" version="1.1"
+        xmlns="http://www.w3.org/2000/svg">
+        <circle cx="20" cy="20" r="12"
+        stroke-width="2" fill="transparent" class="inner"/>
+        <circle cx="20" cy="20" r="12"
+        :stroke-dasharray="Math.PI*12*2"
+        stroke-width="2" fill="transparent"
+        :stroke-dashoffset = "dashoffset"
+        class="outer" ref="outer"/>
+      </svg>
+      <i :class="stopInfo" ref="playState"></i>
+      </div>
+      <div class="playList">
+        <List :list='list' :changeModel="changeModel" v-if="hideCode?true:false" :hide="openList" :loopState="loopState" :currentIndex="currentIndex" :emptyState="emptyState" :changeEmpty='changeEmpty' :setCurrentIndex='setCurrentIndex' :islike='isLike' :addLike="addLike"
+        :changeFlag="changeFlag"
+        ></List>
+        <i class="iconfont icon-bofangliebiao"  @click.stop="openList(true)"></i>
+      </div>
+  </div>
+    <audio :src="songUrl1" controls  ref="audio" @canplay="canplay" @timeupdate="timeupdate" @ended="ended"></audio>
+</div>
 </template>
 <script>
 import List from '../list/list.vue'
@@ -84,6 +85,7 @@ import { mapState, mapGetters, mapMutations, mapActions } from 'vuex'
 import Lyric from 'lyric-parser'
 import Axios from 'axios'
 import { Base64 } from 'js-base64'
+import BS from 'better-scroll'
 export default {
   data () {
     return {
@@ -120,7 +122,6 @@ export default {
       fullScreen: state => { return state.play.fullScreen },
       loopState: state => { return state.play.loopState },
       currentIndex: state => { return state.play.currentIndex },
-      playCode: state => { return state.play.playCode },
       songUrl: state => { return state.play.songUrl }
     }),
     ...mapGetters({ n: 'play/returnMid', o: 'play/returnSingerName', p: 'play/returnSongName', m: 'play/returnSongList' }),
@@ -141,6 +142,18 @@ export default {
     }
   },
   methods: {
+    onSwipeLeft (e) {
+      console.log('左滑',e)
+       this.$refs.maxLyric.style.transform = 'translate3d(0px,0,0)'
+        this.$refs.rotate.style.opacity = '0'
+        this.$refs.miniLyric.style.opacity = '0'
+    },
+    onSwipeRight (e) {
+      console.log('油滑',e)
+       this.$refs.maxLyric.style.transform = 'translate3d(100%,0,0)'
+        this.$refs.rotate.style.opacity = '1'
+        this.$refs.miniLyric.style.opacity = '1'
+    },
     getLyric (mid) {
       let url = `http://${this.$store.state.play.path}:4000/item/songlyric?mid=${mid}`
       Axios.get(url).then(data => {
@@ -151,30 +164,35 @@ export default {
         if (this.lyricObj) {
           this.lyricObj.stop()
         }
-        let reg = /\[.+]/
-        a = a.split('\n')
+
         this.lyricArr = []
-        a.forEach(item => {
-          let m = item.replace(reg, '')
-          if (m) {
-            this.lyricArr.push(m)
-          }
-        })
         this.$nextTick(() => {
-          this.lyricObj = new Lyric(newLyric, (res) => {
-            this.lyric = res.txt
-            this.currentLine = res.lineNum
-            if (res.lineNum > 8 && res.lineNum < this.lyricArr.length - 5 && this.$refs.lyricWrap) {
-              this.$refs.lyricWrap.style.transform = `translate(0,${-24 * (this.currentLine - 8)}px)`
-            }
-          })
+          this.lyricObj = new Lyric(newLyric, this.handleLyric)
+          this.lyricArr = this.lyricObj.lines
           this.lyricObj.play()
+          this.initBs()
         })
       })
+    },
+    handleLyric ({ lineNum, txt }) {
+      this.$nextTick(() => {
+       this.lyric = txt
+       this.currentLine = lineNum
+        if (lineNum > 8 && lineNum < this.lyricArr.length - 5 && this.$refs.lyricWrap) {
+        this.$refs.lyricWrap.style.transform = `translate(0,${-24 * (lineNum - 8)}px)`
+      }
+      })  
     },
     ...mapActions({ getUrl: 'play/getUrl' }),
     startMaxLyric (e) {
       this.touch.middleStartX = e.touches[0].pageX
+    },
+    // 让歌词能手动去滚动
+    initBs () {
+       this.bs = new BS(this.$refs.maxLyric, { momentum: true, probeType: 3, click: true })
+    },
+    tapLyric () {
+
     },
     moveMaxLyric (e) {
       //  e.touches.pageX
@@ -182,7 +200,6 @@ export default {
       if (this.touch.moveX >= 0 && this.touch.moveX < e.target.clientWidth) {
         this.$refs.maxLyric.style.transform = `translate3d(${this.touch.moveX}px,0,0)`
         this.$refs.rotate.style.opacity = `${this.touch.moveX / e.target.clientWidth}`
-
         this.$refs.miniLyric.style.opacity = `${this.touch.moveX / e.target.clientWidth}`
       }
     },
@@ -229,7 +246,6 @@ export default {
       for (let i = 0; i < l.length; i++) {
         let likeMid = l[i].musicData ? l[i].musicData.songmid : l[i].songmid
         if (likeMid === songmid) {
-          console.log('yiyang ', i)
           return i
         }
       }
@@ -255,7 +271,8 @@ export default {
     },
     // 自动判断 加载完 开始播放
     canplay () {
-      this.addHistory({ m: this.m, code: this.playCode })
+      this.addHistory({ m: this.m })
+      this.$refs.lyricWrap.style.transform = `translate(0,0)`
       this.totalTime = this.$refs.audio.duration
       this.state = true
       this.$refs.audio.play()
@@ -399,8 +416,8 @@ export default {
     width:100%;
     z-index: 4000;
     audio{
-            display: none;
-        }
+        display: none;
+    }
     .fullScreen{
         z-index: 4000;
         position: fixed;
@@ -414,31 +431,24 @@ export default {
             top:97px;
             bottom:160px;
             width:100%;
-
         }
         .maxLyric{
             position: absolute;
             top:0px;
             bottom:0px;
-            /* width:100%;
-            height:100%; */
             z-index: 1000000000;
-
-            /* justify-content: center; */
             align-items: center;
-            /* background:red; */
             width:100%;
-
             /* transition-duration: 300ms; */
             transform: translate3d(100%,0,0);
             overflow: hidden;
             color:hsla(0,0%,100%,.5);
+            transition: all .5s ease-in;
             ul{
                 width:100%;
                 display: flex;
                 flex-direction:column;
-
-                /* transform:translate(0,300px); */
+                // /* transform:translate(0,300px); */
                 transition:all 300ms linear;
             }
             li{
@@ -449,6 +459,7 @@ export default {
             }
             .lyricActive{
                 color:#fff;
+                font-size: 20px;
             }
         }
         .songHead{
@@ -489,6 +500,7 @@ export default {
             align-items: center;
             margin:0 auto;
             transform-origin: 50% 50%;
+            transition: all .5s ease-in;
             &.rotate1{
                 animation: rotate 20s linear infinite ;
             }
@@ -569,7 +581,6 @@ export default {
                 .iconfont{
                     font-size:24px;
                 }
-
              }
              .next{
                  border:none;
@@ -597,10 +608,14 @@ export default {
         background:#333;
         display: flex;
         align-items: center;
-        .rotateImg{
-            width:40px;
+        .rotateImgBox {
+           width:40px;
             height:40px;
-            margin:0 20px;
+            padding: 0 10px 0 20px;
+        }
+        .rotateImg{
+            width: 100%;
+            height:100%;
             border-radius:50%;
             overflow: hidden;
             img{
@@ -618,9 +633,13 @@ export default {
             flex:1;
             font-size:14px;
             color: hsla(0,0%,100%,.3);
+            overflow: hidden;
             .songName{
-                font-size:20px;
                 color:#fff;
+                overflow: hidden;
+                white-space: nowrap;
+                text-overflow: ellipsis;
+                font-size:14px;
             }
         }
         .stopBox{

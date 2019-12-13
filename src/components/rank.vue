@@ -28,37 +28,39 @@
 import jsonp from 'jsonp'
 import Bs from 'better-scroll'
 export default {
-  data() {
+  data () {
     return {
-        topList:[]
+      topList: []
     }
   },
   created () {
-    this.getRankList ()
+    this.getRankList()
   },
-  methods : {
-      getRankList () {
-        const url = 'https://c.y.qq.com/v8/fcg-bin/fcg_myqq_toplist.fcg?g_tk=1928093487&inCharset=utf-8&outCharset=utf-8&notice=0&format=jsonp&uin=0&needNewCode=1&platform=h5'
-        jsonp(url,{param:'jsonpCallback'},(err,res)=>{
-            this.topList = res.data.topList
-            this.$nextTick(()=>{
-                this.initBs()
-            })
-        })
-      },
-      initBs () {
-        this.rank = new Bs(this.$refs.rank, { momentum: true, probeType: 3, click: true })
-      },
-      goRankDetail (id) {
-        this.$router.push(`/rank/${id}`)
-      }
+  methods: {
+    getRankList () {
+      const url = 'https://c.y.qq.com/v8/fcg-bin/fcg_myqq_toplist.fcg?g_tk=1928093487&inCharset=utf-8&outCharset=utf-8&notice=0&format=jsonp&uin=0&needNewCode=1&platform=h5'
+      jsonp(url, { param: 'jsonpCallback' }, (err, res) => {
+        if (!err) {
+          this.topList = res.data.topList
+          this.$nextTick(() => {
+            this.initBs()
+          })
+        }
+      })
+    },
+    initBs () {
+      this.rank = new Bs(this.$refs.rank, { momentum: true, probeType: 3, click: true })
+    },
+    goRankDetail (id) {
+      this.$router.push(`/rank/${id}`)
+    }
   }
 }
 </script>
 <style  scoped lang="less">
 .rankBox{
     position: fixed;
-    top:84px;
+    top:83px;
     bottom:0;
     background: #222;
     width: 100%;

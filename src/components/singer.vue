@@ -132,7 +132,7 @@ export default {
     .singer{
         width:100%;
         position: fixed;
-        top:84px;
+        top:83px;
         bottom:0;
         /* overflow: scroll; */
         background:@bgc;
