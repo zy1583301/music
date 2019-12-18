@@ -1,6 +1,6 @@
 
 import Axios from 'axios'
-export default {
+let store = {
   namespaced: true,
   state: {
     songList: [], // 播放列表
@@ -9,7 +9,6 @@ export default {
     fullScreen: true, // 默认为true，全屏，false为小屏
     num: 0,
     timer: null,
-    rotateInfo: 'rotate(0deg)',
     singleNum: -1,
     item: false,
     songUrl: '',
@@ -17,64 +16,70 @@ export default {
     playCode: 'singer',
     mid: '',
     a: '',
-    path: 'localhost' // '47.93.184.51'
+    isVip: false,
+    canplay: [],
+    showLoading: false,
+    searchList: []
   },
   getters: {
     // 计算出当前播放歌曲所需songmid
     getSongmid (state) {
-      if (state.playCode === 'singer') {
-        return state.songList[state.currentIndex].musicData.songmid
-      } else {
-        return state.songList[state.currentIndex].songmid
-      }
+      return state.songList[state.currentIndex].musicInfo.songmid
     },
     returnMid (state) {
-      if (state.songList[state.currentIndex].musicData) {
-        return state.songList[state.currentIndex].musicData.albummid
-      } else {
-        return state.songList[state.currentIndex].albummid
-      }
+      return state.songList[state.currentIndex].musicInfo.albummid
     },
     returnSingerName (state) {
-      if (state.songList[state.currentIndex].musicData) {
-        return state.songList[state.currentIndex].musicData.singer[0].name
-      } else {
-        return state.songList[state.currentIndex].singer[0].name
-      }
+      let arr = state.songList[state.currentIndex].musicInfo.singer
+      let name = ''
+      let nameArr = arr.map(item => {
+        return item.name
+      })
+      name = nameArr.join('、')
+      return name
     },
     returnSongName (state) {
-      if (state.songList[state.currentIndex].musicData) {
-        return state.songList[state.currentIndex].musicData.songname
-      } else {
-        return state.songList[state.currentIndex].songname
-      }
+      return state.songList[state.currentIndex].musicInfo.songname
     },
     returnSongList (state) {
       return state.songList[state.currentIndex] || {}
     },
+    returnSongArr (state) {
+      return state.canplay
+    },
+    returnSearchList (state) {
+      return state.searchList
+    },
     returnUrl (state) {
       return state.imgUrl
+    },
+    returnTips (state) {
+      return state.isVip
+    },
+    returnFullScreen (state) {
+      return state.fullScreen
     }
   },
   mutations: {
     // 对列表进行数据替换
     createSongList (state, params) {
       state.songList = params
-      //    console.log(this)
+    },
+    addSongList (state, params) {
+      let flag = state.songList.some(item => {
+        return item.songUrl === params.songUrl
+      })
+      if (flag) return
+      state.songList.push(params)
     },
     returnImgUrl (state, params) {
       state.imgUrl = params
     },
-    // createPlay (state, params) {
-    //   state.playCode = params
-    // },
     // 播放选中歌曲 将索引值替换
     setCurrentIndex (state, params) {
-      // console.log(this)
       state.currentIndex = params
       state.singleNum = params
       state.item = !state.item
-      // console.log(state.singleNum,state.currentIndex)
     },
     // 对当前播放索引值进行替换
     changeCurrentIndex (state, params) {
@@ -123,6 +128,9 @@ export default {
           break
       }
     },
+    changeShowLoading (state, flag) {
+      store.state.showLoading = flag
+    },
     single (state) {
       // console.log('单曲循环触发')
       // 触发这个函数 那么就让index一直等于进来时的索引
@@ -130,9 +138,8 @@ export default {
       // state.currentIndex = 1
     },
     // 改变全屏状态
-    changeFullScreen (state) {
-      // console.log(this)
-      state.fullScreen = !state.fullScreen
+    changeFullScreen (state, flag) {
+      state.fullScreen = flag
     },
     // 改变循环模式
     changeModel (state) {
@@ -143,14 +150,93 @@ export default {
     },
     changePlayModel (state, model) {
       state.loopState = model
+    },
+    changeCanplay (state, params) {
+      state.canplay = params
+    },
+    handleInfo (state, params) {
+      let { songArr, result } = params
+      let arr = songArr.map((item, index) => {
+        let songUrl = result[index].purl
+        return {
+          musicInfo: item,
+          songUrl: songUrl
+        }
+      })
+      let arr1 = arr.filter((item) => {
+        return item.songUrl !== ''
+      })
+      store.state.canplay = arr1
+      store.mutations.changeShowLoading('', false)
+    },
+    handleSearchInfo (state, params) {
+      let { songArr, result } = params
+      let arr = songArr.map((item, index) => {
+        let songUrl = result[index].purl
+        return {
+          musicInfo: item,
+          songUrl: songUrl
+        }
+      })
+      let arr1 = arr.filter((item) => {
+        return item.songUrl !== ''
+      })
+      let arr2 = store.state.searchList
+      store.state.searchList = arr2.concat(arr1)
+      store.state.canplay = arr1
     }
   },
   actions: {
-    getUrl (context, songmid) {
-      let url = `http://${context.state.path}:4000/item/songUrl?songmid=${songmid}`
+    getUrl ({ commit }, songArr) {
+      let songmidArr = songArr.map((item) => {
+        return item.songmid
+      })
+      let songtype = Array.from({ length: songmidArr.length }, () => 0)
+      let url = `http://${process.env.VUE_APP_API_URL}:4000/item/songUrl?songmid=${JSON.stringify(songmidArr)}&songtype=${JSON.stringify(songtype)}`
       Axios.get(url).then(res => {
-        context.state.songUrl = `http://ws.stream.qqmusic.qq.com/${res.data.req_0.data.midurlinfo[0].purl}`
+        handleMyState(res, songmidArr, songtype, songArr)
+      })
+    },
+    getSearchUrl ({ commit }, songArr) {
+      let songmidArr = songArr.map((item) => {
+        return item.songmid
+      })
+      let songtype = Array.from({ length: songmidArr.length }, () => 0)
+      let url = `http://${process.env.VUE_APP_API_URL}:4000/item/songUrl?songmid=${JSON.stringify(songmidArr)}&songtype=${JSON.stringify(songtype)}`
+      Axios.get(url).then(res => {
+        handleMySearch(res, songmidArr, songtype, songArr)
       })
     }
+  } }
+export default store
+function handleMyState (res, songmidArr, songtype, songArr) {
+  let arr = res.data.req_0.data.midurlinfo
+  let flag = isEmpty(arr)
+  if (!flag) {
+    store.mutations.handleInfo('handleInfo', { songmidArr: songmidArr, result: res.data.req_0.data.midurlinfo, songArr: songArr })
+  } else {
+    getMusicInfo(songmidArr, songtype).then((res) => {
+      handleMyState(res, songmidArr, songtype, songArr)
+    })
   }
+}
+function handleMySearch (res, songmidArr, songtype, songArr) {
+  let arr = res.data.req_0.data.midurlinfo
+  let flag = isEmpty(arr)
+  if (!flag) {
+    store.mutations.handleSearchInfo('handleSearchInfo', { songmidArr: songmidArr, result: res.data.req_0.data.midurlinfo, songArr: songArr })
+  } else {
+    getMusicInfo(songmidArr, songtype).then((res) => {
+      handleMySearch(res, songmidArr, songtype, songArr)
+    })
+  }
+}
+function getMusicInfo (songmidArr, songtype) {
+  let url = `http://${process.env.VUE_APP_API_URL}:4000/item/songUrl?songmid=${JSON.stringify(songmidArr)}&songtype=${JSON.stringify(songtype)}`
+  return Axios.get(url)
+}
+function isEmpty (arr) {
+  return arr.every((item) => {
+    return item.purl === ''
+  })
 }

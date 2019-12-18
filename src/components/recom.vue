@@ -38,12 +38,13 @@ export default {
     }),
     goDetail (dissid, index) {
       // this.urlOfImg = this.list[index].imgurl
+      this.$store.commit('play/changeShowLoading', true)
       this.$router.push(`/recom/${dissid}`)
       this.returnUrl(this.list[index].imgurl)
     }
   },
   created () {
-    let url = `http://${this.$store.state.play.path}:4000/item/disc`
+    let url = `http://${process.env.VUE_APP_API_URL}:4000/item/disc`
     Axios.get(url)
       .then((data) => {
         let list = data.data.data.list

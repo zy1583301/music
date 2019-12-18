@@ -39,6 +39,7 @@ export default {
   },
   methods: {
     goDetail (mid) {
+      this.$store.commit('play/changeShowLoading', true)
       this.$router.push(`/singer/${mid}`)
     },
     getHeight () {

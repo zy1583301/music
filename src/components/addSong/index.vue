@@ -1,5 +1,11 @@
 <template>
-<div class="searchBox">
+<transition enter-active-class="animated rollIn"
+        leave-active-class="animated rollOut">
+<div class="addSong">
+  <div class="title">
+    <span>添加歌曲到列表</span>
+    <i class="fa fa-times" aria-hidden="true" @click="close"></i>
+  </div>
   <div class="searchContanier">
     <i class="fa fa-search" aria-hidden="true"></i>
     <input type="text" class="keyWord" placeholder="搜索歌曲、歌手" v-model="keyword" @input="getSearchResult" @compositionstart="start" @compositionend="end">
@@ -11,7 +17,7 @@
         <i class="fa fa-user-o" aria-hidden="true"></i>
         <span class="songName">{{keyword}}</span>
       </li>
-      <li class="resultItem" v-for="(item,index) in list" :key="index" @click="goPlay(item)">
+      <li class="resultItem" v-for="(item,index) in list1" :key="index" @click.stop="setSong(item)">
         <i class="fa fa-music" aria-hidden="true"></i>
         <span class="songName">{{item.musicInfo.songname}}-{{item.musicInfo.singer[0].name}}</span>
       </li>
@@ -23,21 +29,14 @@
       空空如也~~
     </div>
   </div>
-  <div class="wraper" ref="wraper" v-show="!showState">
-    <div>
-    <div class="hotkeyList">
-      <h3>热门搜索</h3>
-      <ul class="hotkeyBox">
-        <li class="hotItem" v-for="(item,index) in hotKey" :key="index" @click="tapKeyword (item.k)">
-            {{item.k}}
-        </li>
-      </ul>
+   <div class="head">
+        <ol>
+            <li @click="changeSel('play')" :class="sel==='play'?'active':''">最近播放</li>
+            <li @click="changeSel('search')" :class="sel==='search'?'active':''">搜索历史</li>
+        </ol>
     </div>
-    <div class="history" v-show="searchHistory.length&&!showState">
-      <div class="title">
-        <span>搜索历史</span>
-        <i class="fa fa-trash-o" aria-hidden="true" @click.stop="removeSearchList"></i>
-      </div>
+  <div class="wraper" ref="wraper" v-show="!showState">
+    <div class="history" v-if="sel==='search'">
       <ul class="historyList">
         <li v-for="(item,index) in searchHistory" :key="index" @click.stop="tapKeyword(item)">
           <span>{{item}}</span>
@@ -45,19 +44,28 @@
         </li>
       </ul>
     </div>
+    <Listen v-else :list="list" ref="bs"  :setSong="setSong"></Listen>
   </div>
-  </div>
-    <transition enter-active-class="animated slideInRight"
-     leave-active-class="animated slideOutRight">
-    <router-view ></router-view>
-  </transition>
 </div>
+</transition>
 </template>
 <script>
-import jsonp from 'jsonp'
 import Bs from 'better-scroll'
-import { mapMutations, mapActions, mapGetters, mapState } from 'vuex'
+import { mapMutations, mapActions, mapGetters } from 'vuex'
+import Listen from './listen.vue'
 export default {
+  computed: {
+    ...mapGetters({ list1: 'play/returnSearchList' }),
+    list () {
+      if (this.sel === 'Like') {
+        let m = JSON.parse(localStorage.getItem('like'))
+        return m
+      } else {
+        let m = JSON.parse(localStorage.getItem('listen'))
+        return m
+      }
+    }
+  },
   data () {
     return {
       result: [],
@@ -70,21 +78,18 @@ export default {
       playList: [],
       flag: false,
       match: false,
-      mid: ''
+      mid: '',
+      sel: 'play'
     }
   },
-  computed: {
-    ...mapGetters({ list: 'play/returnSearchList' }),
-    ...mapState({
-      myList: state => { return state.play.SearchList }
-    })
-  },
   created () {
-    this.getHotkey()
     this.searchHistory = JSON.parse(localStorage.getItem('search'))
   },
   mounted () {
     this.initWraper()
+  },
+  components: {
+    Listen
   },
   watch: {
     keyword (newData, oldData) {
@@ -94,10 +99,6 @@ export default {
         this.showState = false
         this.keyword = ''
         this.match = false
-        this.$store.state.play.searchList = []
-        // this.myList = []
-        // this.list = []
-        // console.log(this.$store.state.songList,this.list)
       }
     }
   },
@@ -110,6 +111,12 @@ export default {
     ...mapActions({
       getUrl: 'play/getSearchUrl'
     }),
+    close () {
+      this.$emit('isShowAdd')
+    },
+    changeSel (item) {
+      this.sel = item
+    },
     getSearchResult () {
       if (this.flag) return
       let url1 = encodeURI(`http://${process.env.VUE_APP_API_URL}:4000/item/search?keyword=${this.keyword}&page=${this.page}`)
@@ -117,7 +124,6 @@ export default {
       this.spinnerState = true
       this.$axios.get(url1).then(res => {
         if (this.keyword === '') return
-
         this.result = this.result.concat(res.data.song.list)
         this.getUrl(res.data.song.list)
         this.showState = true
@@ -128,29 +134,10 @@ export default {
     clearInput () {
       this.keyword = ''
     },
-    getHotkey () {
-      let url = `https://c.y.qq.com/splcloud/fcgi-bin/gethotkey.fcg?g_tk=1928093487&inCharset=utf-8&outCharset=utf-8&notice=0&format=jsonp&uin=0&needNewCode=1&platform=h5`
-      jsonp(url, { param: 'jsonpCallback' }, (err, res) => {
-        if (!err) {
-          this.hotKey = res.data.hotkey.splice(0, 10)
-        }
-      })
-    },
     tapKeyword (keyword) {
       this.page = 1
       this.keyword = keyword
       this.getSearchResult()
-      this.match = this.compare(keyword)
-    },
-    compare (keyword) {
-      let history = JSON.parse(localStorage.getItem('listen')).map((item) => {
-        return { name: item.musicInfo.singer[0].name, mid: item.musicInfo.singer[0].mid }
-      })
-      let flag = history.some((item) => {
-        this.mid = item.mid
-        return item.name === keyword
-      })
-      return flag
     },
     initBs () {
       if (this.search) this.search.finishPullUp()
@@ -190,23 +177,6 @@ export default {
       localStorage.setItem('search', JSON.stringify(arr))
       this.searchHistory = JSON.parse(localStorage.getItem('search'))
     },
-    goPlay (songInfo) {
-      let a = this.playList.some((item) => {
-        return item.musicInfo.songmid === songInfo.musicInfo.songmid
-      })
-
-      if (a) return
-      this.playList.push(songInfo)
-      if (this.playList.length === 1) {
-        this.changeModel(1)
-      } else {
-        this.changeModel(0)
-      }
-      console.log('playList', this.playList)
-      this.createSongList(this.playList)
-      this.setCurrentIndex(this.playList.length - 1)
-      this.addSearchHistory()
-    },
     removeCurrent (index) {
       let arr = JSON.parse(localStorage.getItem('search'))
       arr.splice(index, 1)
@@ -223,23 +193,66 @@ export default {
     end () {
       this.flag = false
     },
-    goDetail () {
-      this.$store.commit('play/changeShowLoading', true)
-      this.$router.push(`/search/${this.mid}`)
+    ...mapMutations({ createSongList: 'play/createSongList', setCurrentIndex: 'play/setCurrentIndex', addSongList: 'play/addSongList' }),
+    setSong (index, from) {
+      if (from === 'listen') {
+        this.addSongList(this.list[index])
+      } else {
+        this.addSongList(index)
+      }
     }
   }
 }
 </script>
 <style  scoped lang="less">
-.searchBox{
+.addSong{
   font-size:20px;
   background: #222;
   position: fixed;
-  top:83px;
+  top:0px;
   left:0;
   right:0;
   bottom:0;
+  z-index: 1000000;
   box-sizing: border-box;
+  .title {
+    text-align: center;
+    color:#fff;
+    .fa-times {
+      font-size:24px;
+      float: right;
+      margin-right:0.1rem;
+      color:#ffcd32;
+    }
+  }
+  .head{
+      display:flex;
+      justify-content: center;
+      align-items:center;
+      height:0.4rem;
+      position: relative;
+      padding-top:10px;
+      span{
+          position: absolute;
+          left:20px;
+          .iconfont{
+          font-size:40px;
+          color:#ffcd32;
+          }
+      }
+      ol{
+          display: flex;
+          li{
+              border:1px solid #333;
+              padding:8px 20px;
+              background:#222;
+          }
+          .active{
+              color:rgb(255, 255, 255);
+              background:#333;
+          }
+      }
+    }
   .searchContanier{
     background: #333;
     color: #222;

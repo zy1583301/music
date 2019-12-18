@@ -14,16 +14,20 @@ export default {
       let a = localStorage.getItem('listen')
       let b = JSON.parse(a)
       let len = b.length
-      // 也需要判断是否有这个成员 需要遍历
-      for (let i = 0; i < len; i++) {
-        let newMid = item.code === 'singer' ? item.m.musicData.songmid : item.m.songmid
-        let oldMid = b[i].playcode === 'singer' ? b[i].musicData.songmid : b[i].songmid
-        if (newMid === oldMid) {
-          return false
+      if (!b.length) {
+        b.unshift(item.m)
+      } else {
+        for (let i = 0; i < len; i++) {
+          let newMid = item.m.musicInfo.songmid
+          let oldMid = b[i].musicInfo.songmid
+          if (newMid === oldMid) {
+            return false
+          }
         }
+        // item.m.playcode = item.code
+        b.unshift(item.m)
       }
-      item.m.playcode = item.code
-      b.unshift(item.m)
+      // 也需要判断是否有这个成员 需要遍历
       localStorage.setItem('listen', JSON.stringify(b))
     }
   }

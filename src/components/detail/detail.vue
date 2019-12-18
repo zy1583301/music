@@ -11,11 +11,15 @@
             <div class="small_img"></div>
         </div>
         <div class="big" ref="big"></div>
-        <div class="songList"  ref="bs" >
-            <ul class="songItem">
+        <div class="loading" v-show="isShowLoading">
+          <div class="myLoading" :class="isShowLoading?'rotate1':'pause'"></div>
+          <p>正在加载</p>
+        </div>
+        <div class="songList"  ref="bs" v-show="!isShowLoading">
+            <ul class="songItem" >
                 <li v-for="(item,index) in list"  @click="playCurrent(index)" :key="index" >
-                    <p>{{item.musicData?item.musicData.songname:item.songname}}</p>
-                    <p>{{item.musicData?item.musicData.singer[0].name:item.singer[0].name}}<span>{{a==='singer'?item.musicData.albumname:item.albumname}}{{a==='singer'?item.musicData.type:item.type}}</span></p>
+                    <p>{{item.musicInfo.songname}}</p>
+                    <p>{{item.musicInfo.singer[0].name}}<span>{{item.musicInfo.albumname}}</span></p>
                 </li>
             </ul>
         </div>
@@ -25,7 +29,7 @@
 import jsonp from 'jsonp'
 import Bs from 'better-scroll'
 import Axios from 'axios'
-import { mapMutations, mapGetters, mapState } from 'vuex'
+import { mapMutations, mapGetters, mapState, mapActions } from 'vuex'
 export default {
   data () {
     return {
@@ -33,22 +37,29 @@ export default {
       imgUrl: ``,
       trasInfo: 'translate3d(0,0,0)',
       img_h: 0,
-      list: [],
       name: '',
       a: '',
       zindex: 0
     }
   },
   computed: {
-    ...mapGetters({ urlOfImg: 'play/returnUrl' }),
+    ...mapGetters({ urlOfImg: 'play/returnUrl', list: 'play/returnSongArr' }),
     ...mapState({ num1: state => { return state.play.num } },
-      { timer1: state => { return state.play.timer } }
-    )
+      { timer1: state => { return state.play.timer } },
+      { showLoading: state => { return state.play.showLoading } }
+    ),
+    isShowLoading () {
+      return this.$store.state.play.showLoading
+    }
   },
   methods: {
     ...mapMutations({
       createSongList: 'play/createSongList',
       setCurrentIndex: 'play/setCurrentIndex'
+
+    }),
+    ...mapActions({
+      getUrl: 'play/getUrl'
     }),
     playCurrent (index) {
       // 拿到索引值，需要让currentIndex = index
@@ -63,41 +74,43 @@ export default {
       return `translate3d(0,${a}px,0)`
     },
     getList (mid) {
-      // https://c.y.qq.com/v8/fcg-bin/fcg_v8_singer_track_cp.fcg?g_tk=1928093487&inCharset=utf-8&outCharset=utf-8&notice=0&format=jsonp&hostUin=0&needNewCode=0&platform=yqq&order=listen&begin=0&num=80&songstatus=1&singermid=001z2JmX09LLgL&jsonpCallback=jp2
       let url = `https://c.y.qq.com/v8/fcg-bin/fcg_v8_singer_track_cp.fcg?g_tk=1928093487&inCharset=utf-8&outCharset=utf-8&notice=0&format=jsonp&hostUin=0&needNewCode=0&platform=yqq&order=listen&begin=0&num=80&songstatus=1&singermid=${mid}`
-      jsonp(url, { param: 'jsonpCallback' }, (err, data) => {
-        console.log(data)
-        if (!err) {
-           data.data.list.forEach((item)=>{
-            console.log(item.musicData.pay.payplay)
-            if (item.musicData.pay.payplay === 0){
-             this.list.push(item)
-            }
-            
-          })
-          console.log(this.list)
-          this.name = data.data.singer_name
-          this.imgUrl = `https://y.gtimg.cn/music/photo_new/T001R300x300M000${mid}.jpg?max_age=2592000`
-        }
+      new Promise((resolve) => {
+        jsonp(url, { param: 'jsonpCallback' }, (err, data) => {
+          if (!err) {
+            this.name = data.data.singer_name
+            this.imgUrl = `https://y.gtimg.cn/music/photo_new/T001R300x300M000${mid}.jpg?max_age=2592000`
+            resolve(data.data.list)
+          }
+        })
+      }).then((list) => {
+        let list1 = list.map((item) => {
+          return item.musicData
+        })
+        this.getUrl(list1)
+      }).catch(err => {
+        console.log(err)
       })
     },
     getRecomList (mid) {
-      let url = `http://${this.$store.state.play.path}:4000/item/recom?dissid=${mid}`
+      let url = `http://${process.env.VUE_APP_API_URL}:4000/item/recom?dissid=${mid}`
       Axios(url).then((data) => {
-        this.list = data.data.cdlist[0].songlist
+        let list = data.data.cdlist[0].songlist
         this.name = data.data.cdlist[0].dissname
+        this.imgUrl = data.data.cdlist[0].logo
+        this.getUrl(list)
       })
-      this.imgUrl = this.urlOfImg
     },
     getRankList (id) {
       let url = `https://c.y.qq.com/v8/fcg-bin/fcg_v8_toplist_cp.fcg?g_tk=1928093487&inCharset=utf-8&outCharset=utf-8&notice=0&format=jsonp&topid=${id}&needNewCode=1&uin=0&tpl=3&page=detail&type=top&platform=h5`
       jsonp(url, { param: 'jsonpCallback' }, (err, res) => {
         if (!err) {
-          this.list = res.songlist.map(item => {
+          let list = res.songlist.map(item => {
             return item.data
           })
           this.name = res.topinfo.ListName
-          this.imgUrl = `https://y.gtimg.cn/music/photo_new/T002R300x300M000${this.list[0].albummid}.jpg?max_age=2592000`
+          this.imgUrl = `https://y.gtimg.cn/music/photo_new/T002R300x300M000${list[0].albummid}.jpg?max_age=2592000`
+          this.getUrl(list)
         }
       })
     },
@@ -174,7 +187,6 @@ export default {
         }
         .img-box{
             width:100%;
-            /* height:7rem; */
             overflow: hidden;
             z-index: 0;
             position: relative;
@@ -185,7 +197,6 @@ export default {
                 width:100%;
                 background:rgba(0,0,0,.4)
             }
-            /* opacity: .8; */
             img{
                 width:100%;
             }
@@ -193,37 +204,66 @@ export default {
         .big{
             height:100%;
             background:#222;
-            /* position: relative; */
-            /* z-index: 1002; */
+        }
+        .loading{
+          position:fixed;
+          top:262px;
+          bottom:0;
+          width:100%;
+          z-index: 100;
+         background:@bgc;
+         display: flex;
+         justify-content: center;
+         align-items: center;
+         flex-direction: column;
+         color: hsla(0, 0%, 100%, 0.5);
+         .myLoading{
+           width:40px;
+           height:40px;
+           border: 3px solid #f60;
+           border-radius: 50%;
+           border-top:3px solid @bgc;
+           &.rotate1{
+              animation: rotate 1.5s linear infinite ;
+            }
+            &.pause{
+              animation-play-state: paused;
+            }
+         }
         }
         .songList{
             position:fixed;
             top:262px;
             bottom:0;
             width:100%;
-            /* overflow: hidden; */
              color:hsla(0,0%,100%,.5);
             .songItem{
                width:100%;
-               /* height:9rem; */
                 li{
                   width:100%;
                   padding:10px 0;
                   background: #222;
                   p{
                       &:first-child{
-                          color:#fff;
-                          margin-bottom:5px;
+                        color:#fff;
+                        margin-bottom:5px;
                       }
                       padding-left:20px;
                       font-size:14px;
                       span{
-                          margin-left:5px;
+                        margin-left:5px;
                       }
                   }
                 }
-
             }
         }
+        @keyframes rotate {
+        from {
+            transform: rotate(0deg)
+        }
+        to {
+            transform: rotate(360deg)
+        }
+    }
     }
 </style>

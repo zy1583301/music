@@ -52,6 +52,7 @@ export default {
       this.rank = new Bs(this.$refs.rank, { momentum: true, probeType: 3, click: true })
     },
     goRankDetail (id) {
+      this.$store.commit('play/changeShowLoading', true)
       this.$router.push(`/rank/${id}`)
     }
   }

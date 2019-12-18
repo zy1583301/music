@@ -1,9 +1,9 @@
 <template>
 <div class='like' ref="bs" >
-    <ul>
+    <ul v-if="list.length">
         <li v-for="(item,index) in list" @click="setSong(index)" :key="index">
-            <p class="songname"> {{item.musicData?item.musicData.songname:item.songname}}</p>
-            <p><i>{{item.musicData?item.musicData.singer[0].name:item.singer[0].name}}</i><i>{{item.musicData?item.musicData.albumname:item.albumname}}</i></p>
+            <p class="songname"> {{item.musicInfo.songname}}</p>
+            <p><i>{{item.musicInfo.singer[0].name}}</i><i>{{item.musicInfo.albumname}}</i></p>
         </li>
     </ul>
 </div>

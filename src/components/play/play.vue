@@ -1,26 +1,30 @@
 <template>
 <div class='play' v-if="list.length">
-    <div class="fullScreen" v-if="fullScreen">
-       
+    <div class="fullScreen" v-show="fullScreen">
         <div class="background" >
           <img :src="imgUrl" alt="">
         </div>
         <div class="songHead">
-          <i class="iconfont icon-xianshigengduo" @click.stop="changeFull"></i>
+          <div @click="changeFull(false)" :style="{cursor: 'pointer'}" class="changeFull">
+          <i class="iconfont icon-xianshigengduo"></i>
+          </div>
           <p>{{songName}}</p>
         </div>
         <p class="singerName">{{singerName}}</p>
          <v-touch v-on:swipeleft="onSwipeLeft" v-on:swiperight="onSwipeRight">
         <div class="middle" ref="middle">
-          <div class="rotateImg" :class="rotateClass" ref="rotate" >
-          <img :src="imgUrl" alt="">
+
+          <div ref="rotate" class="rotateImg" :class="rotateClass"  >
+            <div class="imgBox" ref="imgBox">
+              <img :src="imgUrl" alt="" ref="myImg">
+            </div>
           </div>
           <div class="miniLyric" ref="miniLyric" >
             {{lyric}}
           </div>
           <div class="maxLyric"  ref="maxLyric" >
             <ul  ref="lyricWrap">
-              <li v-for="(item,index) in lyricArr" :class="index=== currentLine?'lyricActive':''" :lineIndex="index" :key="index" ref="lyricLine">
+              <li v-for="(item,index) in lyricArr" :class="index=== currentLine?'lyricActive':''" :lineIndex="index" :key="index" ref="lyricLine" @click="tapLyric(item.time)">
               {{item.txt}}
               </li>
             </ul>
@@ -28,8 +32,8 @@
         </div>
         </v-touch>
         <div class="timeBar">
-          <span>{{time|hehe}}</span>
-          <div class="bot_line"  @click.stop="progressClick" ref="bot_line">
+          <span>{{currentTime|hehe}}</span>
+          <div class="bot_line"  @click.stop="progressClick" ref="bot_line" :style="{cursor: 'pointer'}">
           <div class="top_line"  ref="top_line">
           </div>
           <div class="block"  @touchstart.stop.prevent="touchstart" @touchmove.stop.prevent='touchmove' @touchend.stop.prevent="touchend" ref="block">
@@ -39,24 +43,24 @@
         <span>{{totalTime|hehe}}</span>
         </div>
         <div class="set">
-          <span @click.stop="changeModel"><i :class="loopState===0?'iconfont icon-ziyuanldpi':(loopState===1?'iconfont icon-danquxunhuan':'iconfont icon-suiji')" ref="model"></i></span>
-          <span @click.stop="next('prev')" class="next"><i class="iconfont icon-shangyigeshangyiqu" ></i></span>
-          <span @click.stop="play"><i :class="stopInfo" ref="playState"></i></span>
-          <span @click.stop="next('next')" class="next"><i class="iconfont icon-xiayigexiayiqu"></i></span>
-          <span @click.stop="addLike(m)" class="heart"><i :class="isLike(m)?'fa fa-heart':'fa fa-heart-o'" aria-hidden="true" ref="heart"></i></span>
+          <span @click="changeModel"><i :class="loopState===0?'iconfont icon-ziyuanldpi':(loopState===1?'iconfont icon-danquxunhuan':'iconfont icon-suiji')" ref="model"></i></span>
+          <span @click="next('prev')" class="next"><i class="iconfont icon-shangyigeshangyiqu" ></i></span>
+          <span @click="play"><i class="iconfont " :class="pauseCode ? 'icon-zanting' : 'icon-tablesuspend'" ref="playState"></i></span>
+          <span @click="next('next')" class="next"><i class="iconfont icon-xiayigexiayiqu"></i></span>
+          <span @click="addLike(m)" class="heart"><i :class="isLike(m)?'fa fa-heart':'fa fa-heart-o'" aria-hidden="true" ref="heart"></i></span>
         </div>
     </div>
-    <div class="miniScreen" v-else >
+    <div class="miniScreen" v-show="!fullScreen" >
       <div class="rotateImgBox">
-      <div  class="rotateImg"  :class="rotateClass" ref="rotate"  @click="changeFull">
+      <div  class="rotateImg"  :class="rotateClass" ref="rotate"  @click="changeFull(true)" :style="{cursor: 'pointer'}">
       <img :src="imgUrl" alt="">
       </div>
     </div>
-    <div class="text" @click.stop="changeFull">
+    <div class="text" @click.stop="changeFull(true)" :style="{cursor: 'pointer'}">
       <h2 class="songName">{{songName}}</h2>
       <p>{{singerName}}</p>
     </div>
-    <div class="stopBox" @click.stop="play" >
+    <div class="stopBox" @click.stop="play" :style="{cursor: 'pointer'}">
         <svg width="100%" height="100%" version="1.1"
         xmlns="http://www.w3.org/2000/svg">
         <circle cx="20" cy="20" r="12"
@@ -67,16 +71,16 @@
         :stroke-dashoffset = "dashoffset"
         class="outer" ref="outer"/>
       </svg>
-      <i :class="stopInfo" ref="playState"></i>
+      <i :class="pauseState" ref="playState"></i>
       </div>
       <div class="playList">
         <List :list='list' :changeModel="changeModel" v-if="hideCode?true:false" :hide="openList" :loopState="loopState" :currentIndex="currentIndex" :emptyState="emptyState" :changeEmpty='changeEmpty' :setCurrentIndex='setCurrentIndex' :islike='isLike' :addLike="addLike"
         :changeFlag="changeFlag"
         ></List>
-        <i class="iconfont icon-bofangliebiao"  @click.stop="openList(true)"></i>
+        <i class="iconfont icon-bofangliebiao"  @click.stop="openList(true)" :style="{cursor: 'pointer'}"></i>
       </div>
   </div>
-    <audio :src="songUrl1" controls  ref="audio" @canplay="canplay" @timeupdate="timeupdate" @ended="ended"></audio>
+    <audio :src="playUrl" controls  ref="audio"  @timeupdate="timeupdate" @ended="ended" @playing="ready" ></audio>
 </div>
 </template>
 <script>
@@ -86,6 +90,8 @@ import Lyric from 'lyric-parser'
 import Axios from 'axios'
 import { Base64 } from 'js-base64'
 import BS from 'better-scroll'
+import { prefixStyle } from '../../utils/style'
+const myTransform = prefixStyle('transform')
 export default {
   data () {
     return {
@@ -102,7 +108,11 @@ export default {
       likeArr: [], // 字符串变化是  解析字符串为数组 对比当前点击的歌曲有没有在这个数组里，如果在是红心变空心，没在则加入到里面变红心
       lyric: '暂无歌词',
       lyricArr: [],
-      currentLine: 0
+      currentLine: 0,
+      playUrl: '',
+      opcity: '1',
+      canplayState: false,
+      pauseCode: false
     }
   },
   components: {
@@ -119,12 +129,12 @@ export default {
   computed: {
     // 获取 state里的 歌曲列表 等会判断长度来决定是否渲染播放页面
     ...mapState({ list: state => { return state.play.songList },
-      fullScreen: state => { return state.play.fullScreen },
+      // fullScreen: state => { return state.play.fullScreen },
       loopState: state => { return state.play.loopState },
       currentIndex: state => { return state.play.currentIndex },
       songUrl: state => { return state.play.songUrl }
     }),
-    ...mapGetters({ n: 'play/returnMid', o: 'play/returnSingerName', p: 'play/returnSongName', m: 'play/returnSongList' }),
+    ...mapGetters({ n: 'play/returnMid', o: 'play/returnSingerName', p: 'play/returnSongName', m: 'play/returnSongList', fullScreen: 'play/returnFullScreen' }),
     singerName () {
       return this.o
     },
@@ -139,32 +149,39 @@ export default {
     },
     rotateClass () {
       return this.state ? 'rotate1' : 'rotate1 pause'
+    },
+    pauseState () {
+      return this.pauseCode ? 'iconfont icon-zanting' : 'iconfont icon-tablesuspend'
     }
   },
   methods: {
+    ready (e) {
+      // this.state = true
+    },
     onSwipeLeft (e) {
-      console.log('左滑',e)
-       this.$refs.maxLyric.style.transform = 'translate3d(0px,0,0)'
-        this.$refs.rotate.style.opacity = '0'
-        this.$refs.miniLyric.style.opacity = '0'
+      this.$refs.maxLyric.style[myTransform] = 'translate3d(0px,0,0)'
+      this.opcity = 1
+      this.$refs.miniLyric.style.opacity = 0
+      this.$refs.rotate.style.filter = 'alpha(opacity=0)'
+      this.$refs.rotate.style.opacity = 0
+      this.$refs.imgBox.style.opacity = 0
+      console.log(this.$refs.rotate.$el)
     },
     onSwipeRight (e) {
-      console.log('油滑',e)
-       this.$refs.maxLyric.style.transform = 'translate3d(100%,0,0)'
-        this.$refs.rotate.style.opacity = '1'
-        this.$refs.miniLyric.style.opacity = '1'
+      this.$refs.maxLyric.style[myTransform] = 'translate3d(100%,0,0)'
+      this.$refs.miniLyric.style.opacity = 1
+      this.$refs.rotate.style.opacity = 1
+      this.$refs.imgBox.style.opacity = 1
     },
     getLyric (mid) {
-      let url = `http://${this.$store.state.play.path}:4000/item/songlyric?mid=${mid}`
+      let url = `http://${process.env.VUE_APP_API_URL}:4000/item/songlyric?mid=${mid}`
       Axios.get(url).then(data => {
         // 拿到歌词  需要使用插件解析 lyric-parser
         let oldLyric = data.data.lyric
         let newLyric = Base64.decode(oldLyric)
-        let a = newLyric
         if (this.lyricObj) {
           this.lyricObj.stop()
         }
-
         this.lyricArr = []
         this.$nextTick(() => {
           this.lyricObj = new Lyric(newLyric, this.handleLyric)
@@ -176,12 +193,12 @@ export default {
     },
     handleLyric ({ lineNum, txt }) {
       this.$nextTick(() => {
-       this.lyric = txt
-       this.currentLine = lineNum
+        this.lyric = txt
+        this.currentLine = lineNum
         if (lineNum > 8 && lineNum < this.lyricArr.length - 5 && this.$refs.lyricWrap) {
-        this.$refs.lyricWrap.style.transform = `translate(0,${-24 * (lineNum - 8)}px)`
-      }
-      })  
+          this.$refs.lyricWrap.style[myTransform] = `translate(0,${-24 * (lineNum - 8)}px)`
+        }
+      })
     },
     ...mapActions({ getUrl: 'play/getUrl' }),
     startMaxLyric (e) {
@@ -189,42 +206,20 @@ export default {
     },
     // 让歌词能手动去滚动
     initBs () {
-       this.bs = new BS(this.$refs.maxLyric, { momentum: true, probeType: 3, click: true })
+      // if(!this.fullScreen) return
+      this.bs = new BS(this.$refs.maxLyric, { momentum: true, probeType: 3, click: true, taps: true })
     },
-    tapLyric () {
-
-    },
-    moveMaxLyric (e) {
-      //  e.touches.pageX
-      this.touch.moveX = e.touches[0].pageX
-      if (this.touch.moveX >= 0 && this.touch.moveX < e.target.clientWidth) {
-        this.$refs.maxLyric.style.transform = `translate3d(${this.touch.moveX}px,0,0)`
-        this.$refs.rotate.style.opacity = `${this.touch.moveX / e.target.clientWidth}`
-        this.$refs.miniLyric.style.opacity = `${this.touch.moveX / e.target.clientWidth}`
-      }
-    },
-    endMaxLyric () {
-      if (this.touch.moveX < this.touch.middleStartX) {
-        this.$refs.maxLyric.style.transform = 'translate3d(0px,0,0)'
-        this.$refs.rotate.style.opacity = '0'
-        this.$refs.miniLyric.style.opacity = '0'
-      } else {
-        this.$refs.maxLyric.style.transform = 'translate3d(100%,0,0)'
-        this.$refs.rotate.style.opacity = '1'
-        this.$refs.miniLyric.style.opacity = '1'
-      }
+    tapLyric (time) {
+      this.$refs.audio.currentTime = time / 1000
+      this.lyricObj.seek(time)
     },
     // 判断是否在喜欢里面 返回布尔值  用于 数据渲染时判断是否为红心
     isLike (item) {
       this.likeStr = localStorage.getItem('like')
-      let songmid = item.musicData ? item.musicData.songmid : item.songmid
+      let songmid = item.musicInfo.songmid
       if (this.likeArr.length !== 0) {
         let c = this.likeArr.some(function (item1) {
-          if (item1.musicData) {
-            return item1.musicData.songmid === songmid
-          } else {
-            return item1.songmid === songmid
-          }
+          return item1.musicInfo.songmid === songmid
         })
         return c
       }
@@ -242,9 +237,9 @@ export default {
     },
     // 循环判断 数组里是否包含该对象
     fn (l, item) {
-      let songmid = item.musicData ? item.musicData.songmid : item.songmid
+      let songmid = item.musicInfo.songmid
       for (let i = 0; i < l.length; i++) {
-        let likeMid = l[i].musicData ? l[i].musicData.songmid : l[i].songmid
+        let likeMid = l[i].musicInfo.songmid
         if (likeMid === songmid) {
           return i
         }
@@ -271,11 +266,18 @@ export default {
     },
     // 自动判断 加载完 开始播放
     canplay () {
+      // alert('可以播放了')
+      this.canplayState = true
       this.addHistory({ m: this.m })
-      this.$refs.lyricWrap.style.transform = `translate(0,0)`
-      this.totalTime = this.$refs.audio.duration
+      if (this.$refs.lyricWrap) {
+        this.$nextTick(() => {
+          this.$refs.lyricWrap.style[myTransform] = `translate(0,0)`
+        })
+      }
+      // console.log(this.$refs.audio.duration)
+      // this.totalTime = this.$refs.audio.duration
       this.state = true
-      this.$refs.audio.play()
+      // this.$refs.audio.play()
     },
     // 不断获取当前播放时间 下面的watch里监控了这个currentTime的变化 来控制播放时进度条变化
     timeupdate (e) {
@@ -284,14 +286,16 @@ export default {
     // 控制点击时 对歌曲播放的控制
     play () {
       // 暂停状态 默认是true
-      if (this.$refs.audio.paused) {
-        this.stopInfo = 'iconfont icon-tablesuspend'
+      if (this.pauseCode) {
+        // this.stopInfo = 'iconfont icon-tablesuspend'
         this.$refs.audio.play()
         this.state = true
+        this.pauseCode = false
       } else {
-        this.stopInfo = 'iconfont icon-zanting'
+        // this.stopInfo = 'iconfont icon-zanting'
         this.$refs.audio.pause()
         this.state = false
+        this.pauseCode = true
       }
     },
     ...mapMutations({ next: 'play/changeCurrentIndex',
@@ -307,20 +311,22 @@ export default {
       this.model1()
     },
     // 改变全屏状态
-    changeFull () {
-      this.full()
+    changeFull (flag) {
+      this.myscr = true
+      this.full(flag)
     },
     // 点击时改变进度条与当前播放时间
     progressClick (e) {
       this.touch.startX = e.pageX // 点击时 记录 初始坐标
       let x = this.touch.startX - e.target.offsetLeft // 减去自身与页面左侧的距离，得出进度条的位置信息
       this.$refs.audio.currentTime = x / e.target.clientWidth * this.$refs.audio.duration
+      console.log(this.$refs.audio.currentTime * 1000)
       this.lyricObj.seek(this.$refs.audio.currentTime * 1000)
     },
     // 计算出位置后  改变进度条位置
     progressPos (instance) {
       this.$refs.top_line.style.width = instance + 'px'
-      this.$refs.block.style.transform = `translate3d(${instance}px,0,0)`
+      this.$refs.block.style[myTransform] = `translate3d(${instance}px,0,0)`
     },
     // 点下 记录初始坐标，让istouch变为true 不影响正常的播放
     touchstart (e) {
@@ -356,16 +362,16 @@ export default {
     // m为当前歌曲信息
     m (newValue, oldValue) {
       if (newValue === oldValue) return false
-      if (newValue.musicData) {
-        this.getLyric(newValue.musicData.songmid)
-        this.getUrl(newValue.musicData.songmid)
-      } else if (!newValue.musicData) {
-        this.getLyric(newValue.songmid)
-        this.getUrl(newValue.songmid)
-      }
-      if (this.state) {
-        this.stopInfo = 'iconfont icon-tablesuspend'
-      }
+      this.playUrl = newValue.songUrl
+      this.getLyric(newValue.musicInfo.songmid)
+      // this.getLyric(newValue.musicInfo.songmid)
+      this.totalTime = newValue.musicInfo.interval
+      this.$nextTick(() => {
+        this.canplay()
+        this.$refs.audio.play()
+        this.state = true
+        this.pauseCode = false
+      })
     },
     // 监控当前时间变化  改变进度条位置
     currentTime (newTime, oldTime) {
@@ -373,10 +379,9 @@ export default {
         // 如果在拖动进度条，那么我们中止
         return false
       }
-      this.time = newTime
       // 如果播放完毕  且新时间仍然等于歌曲总长度且 为单曲循环模式那么重置播放时间，并自动播放
       if (newTime === this.totalTime && this.loopState === 1) {
-        this.time = 0
+        this.currentTime = 0
         this.$refs.audio.play()
         if (this.lyricObj) {
           this.lyricObj.seek(0)
@@ -465,9 +470,14 @@ export default {
         .songHead{
             position: relative;
             padding-top:10px;
-            .iconfont{
-                position: absolute;
+            .changeFull {
+              position: absolute;
                 left:10px;
+                font-size:24px;
+            }
+            .iconfont{
+                // position: absolute;
+                // left:10px;
                 font-size:24px;
             }
             display: flex;
@@ -492,15 +502,25 @@ export default {
         .rotateImg{
             width:300px;
             height:300px;
-            border-radius: 50%;
-            border:10px solid hsla(0,0%,100%,.1);
-            overflow: hidden;
             display: flex;
             justify-content: center;
             align-items: center;
             margin:0 auto;
             transform-origin: 50% 50%;
             transition: all .5s ease-in;
+            box-sizing: border-box;
+            .imgBox{
+              border:10px solid hsla(0,0%,100%,.1);
+              border-radius: 50%;
+            //     width:300px;
+            // height:300px;
+             box-sizing: border-box;
+              overflow: hidden;
+             img{
+                width: 100%;
+                height:100%;
+            }
+            }
             &.rotate1{
                 animation: rotate 20s linear infinite ;
             }
@@ -540,10 +560,10 @@ export default {
                 position: relative;
 
                 .block{
-                    width: 12px;
-                    height:12px;
+                    width: 15px;
+                    height: 15px;
                     position: absolute;
-                    top:-4px;
+                    top:-6px;
                     border-radius: 50%;
                     background:#f60;
                     display: flex;
@@ -577,6 +597,7 @@ export default {
                 width:30px;
                 height:30px;
                 border-radius:50%;
+                cursor: pointer;
                 border:2px solid #ffcd32;
                 .iconfont{
                     font-size:24px;

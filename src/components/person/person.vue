@@ -60,6 +60,7 @@ export default {
     },
     ...mapMutations({ createSongList: 'play/createSongList', setCurrentIndex: 'play/setCurrentIndex' }),
     setSong (index) {
+      this.$store.state.play.canplay = this.list
       this.createSongList(this.list)
       this.setCurrentIndex(index)
     }

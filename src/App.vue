@@ -2,7 +2,9 @@
   <div id="app">
     <MHeader ></MHeader>
     <MNav></MNav>
-    <transition enter-active-class="animated rollIn"
+    <Tips></Tips>
+    <transition
+    enter-active-class="animated rollIn"
     leave-active-class="animated rollOut">
     <Play></Play>
     </transition>
@@ -16,9 +18,10 @@
 import MHeader from './components/header'
 import MNav from './components/nav'
 import Play from './components/play/play'
+import Tips from './tips/tips'
 import { mapState } from 'vuex'
 export default {
-  components: { MHeader, MNav, Play },
+  components: { MHeader, MNav, Play, Tips },
   data () {
     return {
       flag: false
@@ -42,7 +45,6 @@ export default {
 <style lang="less">
   @import './style/index.less';
 #app{
-  /* .w(375); */
   width:100%;
   position: relative;
 }

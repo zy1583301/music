@@ -1,3 +1,4 @@
+import 'babel-polyfill'
 import Vue from 'vue'
 import App from './App.vue'
 import router from './router'
@@ -8,7 +9,6 @@ import store from './store/store'
 import Axios from 'axios'
 import '../public/font/iconfont.css'
 import VueTouch from 'vue-touch'
-
 router.beforeEach(async (to, from, next) => {
   document.title = to.meta.title
   store.state.play.playCode = to.path.split('/')[1]

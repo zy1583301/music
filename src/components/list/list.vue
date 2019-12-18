@@ -23,7 +23,7 @@
             <div class="left">
             <i :class="index===currentIndex?'fa fa-play-circle':''" aria-hidden="true" ></i>
             <span @click.stop="changeIndex(index)">
-                {{item.musicData?item.musicData.songname:item.songname}}
+                {{item.musicInfo.songname}}-{{item.musicInfo.singer[0].name}}
             </span>
              </div>
              <div class="right" >
@@ -34,23 +34,26 @@
     </ul>
 </div>
 <div class="footHead">
-    <div>
+    <div @click="isShowAdd">
         <i class="iconfont icon-jia1"></i>
         <span>添加歌曲到列表</span>
     </div>
 </div>
 <div class="listFoot" @click.stop="closeList">关闭</div>
+<AddSong v-if="showAdd" @isShowAdd="isShowAdd"></AddSong>
 </div>
 </template>
 <script>
 import Bs from 'better-scroll'
 import { mapState } from 'vuex'
+import AddSong from '../addSong/index'
 export default {
   props: ['list', 'changeModel', 'hide', 'loopState', 'currentIndex', 'emptyState', 'changeEmpty', 'setCurrentIndex', 'islike', 'addLike', 'changeFlag'],
   data () {
     return {
       confirmState: false, // 判断询问框的出现与否
-      heartClass: 'fa fa-heart-o'
+      heartClass: 'fa fa-heart-o',
+      showAdd: false
     }
   },
   computed: {
@@ -59,7 +62,9 @@ export default {
       return this.playCode
     }
   },
-
+  components: {
+    AddSong
+  },
   methods: {
     like (item) {
       let a = this.islike(item)
@@ -89,6 +94,9 @@ export default {
     },
     changeIndex (index) {
       this.setCurrentIndex(index)
+    },
+    isShowAdd () {
+      this.showAdd = !this.showAdd
     }
   },
   mounted () {
