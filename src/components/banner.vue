@@ -53,7 +53,7 @@ export default {
       // let url = `/hehe/api/getTopBanner`
       // let url = 'http://47.93.184.51:4000/item/banner'
       // let url = 'http://localhost:4000/item/banner'
-      let url = `http://${process.env.VUE_APP_API_URL}:4000/item/banner`
+      let url = `http://${process.env.VUE_APP_API_URL}/item/banner`
 
       this.$axios.get(url).then(res => {
         this.list = res.data.data.slider

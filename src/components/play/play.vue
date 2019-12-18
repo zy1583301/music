@@ -80,7 +80,7 @@
         <i class="iconfont icon-bofangliebiao"  @click.stop="openList(true)" :style="{cursor: 'pointer'}"></i>
       </div>
   </div>
-    <audio :src="playUrl" controls  ref="audio"  @timeupdate="timeupdate" @ended="ended" @playing="ready" ></audio>
+    <audio :src="playUrl" controls  ref="audio"  @timeupdate="timeupdate" @ended="ended"></audio>
 </div>
 </template>
 <script>
@@ -110,7 +110,6 @@ export default {
       lyricArr: [],
       currentLine: 0,
       playUrl: '',
-      opcity: '1',
       canplayState: false,
       pauseCode: false
     }
@@ -129,7 +128,6 @@ export default {
   computed: {
     // 获取 state里的 歌曲列表 等会判断长度来决定是否渲染播放页面
     ...mapState({ list: state => { return state.play.songList },
-      // fullScreen: state => { return state.play.fullScreen },
       loopState: state => { return state.play.loopState },
       currentIndex: state => { return state.play.currentIndex },
       songUrl: state => { return state.play.songUrl }
@@ -155,9 +153,6 @@ export default {
     }
   },
   methods: {
-    ready (e) {
-      // this.state = true
-    },
     onSwipeLeft (e) {
       this.$refs.maxLyric.style[myTransform] = 'translate3d(0px,0,0)'
       this.opcity = 1
@@ -165,7 +160,6 @@ export default {
       this.$refs.rotate.style.filter = 'alpha(opacity=0)'
       this.$refs.rotate.style.opacity = 0
       this.$refs.imgBox.style.opacity = 0
-      console.log(this.$refs.rotate.$el)
     },
     onSwipeRight (e) {
       this.$refs.maxLyric.style[myTransform] = 'translate3d(100%,0,0)'
@@ -174,7 +168,7 @@ export default {
       this.$refs.imgBox.style.opacity = 1
     },
     getLyric (mid) {
-      let url = `http://${process.env.VUE_APP_API_URL}:4000/item/songlyric?mid=${mid}`
+      let url = `http://${process.env.VUE_APP_API_URL}/item/songlyric?mid=${mid}`
       Axios.get(url).then(data => {
         // 拿到歌词  需要使用插件解析 lyric-parser
         let oldLyric = data.data.lyric
@@ -206,7 +200,6 @@ export default {
     },
     // 让歌词能手动去滚动
     initBs () {
-      // if(!this.fullScreen) return
       this.bs = new BS(this.$refs.maxLyric, { momentum: true, probeType: 3, click: true, taps: true })
     },
     tapLyric (time) {
@@ -274,10 +267,7 @@ export default {
           this.$refs.lyricWrap.style[myTransform] = `translate(0,0)`
         })
       }
-      // console.log(this.$refs.audio.duration)
-      // this.totalTime = this.$refs.audio.duration
       this.state = true
-      // this.$refs.audio.play()
     },
     // 不断获取当前播放时间 下面的watch里监控了这个currentTime的变化 来控制播放时进度条变化
     timeupdate (e) {

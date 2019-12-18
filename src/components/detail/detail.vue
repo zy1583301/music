@@ -93,7 +93,7 @@ export default {
       })
     },
     getRecomList (mid) {
-      let url = `http://${process.env.VUE_APP_API_URL}:4000/item/recom?dissid=${mid}`
+      let url = `http://${process.env.VUE_APP_API_URL}/item/recom?dissid=${mid}`
       Axios(url).then((data) => {
         let list = data.data.cdlist[0].songlist
         this.name = data.data.cdlist[0].dissname

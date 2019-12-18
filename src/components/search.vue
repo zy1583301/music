@@ -112,7 +112,7 @@ export default {
     }),
     getSearchResult () {
       if (this.flag) return
-      let url1 = encodeURI(`http://${process.env.VUE_APP_API_URL}:4000/item/search?keyword=${this.keyword}&page=${this.page}`)
+      let url1 = encodeURI(`http://${process.env.VUE_APP_API_URL}/item/search?keyword=${this.keyword}&page=${this.page}`)
       if (this.keyword === '') return
       this.spinnerState = true
       this.$axios.get(url1).then(res => {

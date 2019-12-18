@@ -1,24 +1,29 @@
 # music
 
-## Project setup
+## 安装依赖
 ```
 npm install
 ```
 
-### Compiles and hot-reloads for development
+### 运行本地服务器
 ```
 npm run dev
 ```
 
-### Compiles and minifies for production
+### 打包项目
 ```
 npm run build
 ```
 
-### Lints and fixes files
+### 修复严格模式下警告
 ```
 npm run lint
 ```
-
-### Customize configuration
-See [Configuration Reference](https://cli.vuejs.org/config/).
+### 开发阶段请求ip
+```
+在.env.development 里修改VUE_APP_API_URL
+```
+### 上线阶段请求ip
+```
+在.env.production 里修改VUE_APP_API_URL
+```

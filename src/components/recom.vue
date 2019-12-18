@@ -44,7 +44,7 @@ export default {
     }
   },
   created () {
-    let url = `http://${process.env.VUE_APP_API_URL}:4000/item/disc`
+    let url = `http://${process.env.VUE_APP_API_URL}/item/disc`
     Axios.get(url)
       .then((data) => {
         let list = data.data.data.list

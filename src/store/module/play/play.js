@@ -192,7 +192,7 @@ let store = {
         return item.songmid
       })
       let songtype = Array.from({ length: songmidArr.length }, () => 0)
-      let url = `http://${process.env.VUE_APP_API_URL}:4000/item/songUrl?songmid=${JSON.stringify(songmidArr)}&songtype=${JSON.stringify(songtype)}`
+      let url = `http://${process.env.VUE_APP_API_URL}/item/songUrl?songmid=${JSON.stringify(songmidArr)}&songtype=${JSON.stringify(songtype)}`
       Axios.get(url).then(res => {
         handleMyState(res, songmidArr, songtype, songArr)
       })
@@ -202,7 +202,7 @@ let store = {
         return item.songmid
       })
       let songtype = Array.from({ length: songmidArr.length }, () => 0)
-      let url = `http://${process.env.VUE_APP_API_URL}:4000/item/songUrl?songmid=${JSON.stringify(songmidArr)}&songtype=${JSON.stringify(songtype)}`
+      let url = `http://${process.env.VUE_APP_API_URL}/item/songUrl?songmid=${JSON.stringify(songmidArr)}&songtype=${JSON.stringify(songtype)}`
       Axios.get(url).then(res => {
         handleMySearch(res, songmidArr, songtype, songArr)
       })
@@ -232,7 +232,7 @@ function handleMySearch (res, songmidArr, songtype, songArr) {
   }
 }
 function getMusicInfo (songmidArr, songtype) {
-  let url = `http://${process.env.VUE_APP_API_URL}:4000/item/songUrl?songmid=${JSON.stringify(songmidArr)}&songtype=${JSON.stringify(songtype)}`
+  let url = `http://${process.env.VUE_APP_API_URL}/item/songUrl?songmid=${JSON.stringify(songmidArr)}&songtype=${JSON.stringify(songtype)}`
   return Axios.get(url)
 }
 function isEmpty (arr) {
